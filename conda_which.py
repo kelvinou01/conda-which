@@ -3,26 +3,11 @@ import json
 import os
 
 import conda.plugins
-from conda import CondaError
 from conda.core.envs_manager import list_all_known_prefixes
+from termcolor import colored
 
 PLUGIN_DESCRIPTION = "Which package does this file belong to?"
 CONDA_ENVS = set(list_all_known_prefixes())
-
-
-class NotACondaFile(CondaError):
-    def __init__(self, path, conda_envs, **kwargs):
-        message = (
-            "The file does not belong to any Conda environment: %(path)s\n"
-            "Available Conda environments are: %(conda_envs)s"
-        )
-        super().__init__(message, path=path, conda_envs=conda_envs, **kwargs)
-
-
-class FileNotFound(CondaError):
-    def __init__(self, path, **kwargs):
-        message = "The file does not exist: %(path)s"
-        super().__init__(message, path=path, **kwargs)
 
 
 def match_longest_prefix(path, conda_envs):
@@ -32,6 +17,15 @@ def match_longest_prefix(path, conda_envs):
         path = os.path.dirname(path)
 
     return None
+
+
+def is_conda_metadata(fullpath):
+    conda_meta = os.path.join(os.path.dirname(fullpath), "conda-meta")
+    if os.path.dirname(fullpath) == conda_meta:
+        filename = os.path.basename(fullpath)
+        if filename.endswith(".json") or filename == "history":
+            return True
+    return False
 
 
 # Don't use str.removeprefix, for python3.8 support
@@ -57,29 +51,82 @@ def find_owner_package(relpath, prefix):
     return None
 
 
+def which(path):
+    try:
+        fullpath = os.path.realpath(path, strict=True)
+    except OSError:
+        return None, None, None
+
+    prefix = match_longest_prefix(fullpath, CONDA_ENVS)
+    if prefix is None:
+        return fullpath, None, None
+
+    relpath = strip_prefix(fullpath, prefix)
+    package = find_owner_package(relpath, prefix)
+    if package is None:
+        if is_conda_metadata(fullpath):
+            return fullpath, prefix, "conda metadata file"
+        else:
+            return fullpath, prefix, None
+
+    return fullpath, prefix, package
+
+
+def print_for_human(arg, fullpath, prefix, package):
+    if not fullpath:
+        print(colored(f"File '{arg}' does not exist", "red"))
+        return
+
+    if package:
+        package_display = colored(package, "green")
+    else:
+        package_display = colored("Does not belong to a conda package", "yellow")
+
+    if prefix:
+        prefix_display = colored(prefix, "green")
+    else:
+        prefix_display = colored("Does not belong to a conda environment", "yellow")
+
+    print(f"File '{fullpath}' belongs to")
+    print(f"  📦 Package: {package_display}")
+    print(f"  🌏 Environment: {prefix_display}")
+    print("")
+
+
+def print_for_machine(fullpath, prefix, package):
+    if not fullpath:
+        print("Path not found")
+    elif not prefix:
+        print(f"'{fullpath}' does not belong to any conda environment")
+    elif not package:
+        print(
+            f"'{fullpath}' belongs to a conda environment, but not to any conda package"
+        )
+    else:
+        print(f"'{fullpath}' belongs to {package}")
+
+
 def command(argv: list[str]):
     parser = build_parser()
     args = parser.parse_args(argv)
-    try:
-        path = os.path.realpath(args.file[0], strict=True)
-    except OSError as e:
-        raise FileNotFound(path, cause=e)
-
-    prefix = match_longest_prefix(path, CONDA_ENVS)
-    if prefix is None:
-        raise NotACondaFile(path, CONDA_ENVS)
-
-    relpath = strip_prefix(path, prefix)
-    package = find_owner_package(relpath, prefix)
-    package_display = package if package else "No package (user added file)"
-    print(f"File '{path}' belongs to")
-    print(f"  Package: {package_display}")
-    print(f"  Environment: {prefix}")
+    adhere_to_unix_philosophy = args.unix
+    for path in args.file:
+        fullpath, prefix, package = which(path)
+        if adhere_to_unix_philosophy:
+            print_for_machine(fullpath, prefix, package)
+        else:
+            print_for_human(path, fullpath, prefix, package)
 
 
 def build_parser():
     parser = argparse.ArgumentParser(description=PLUGIN_DESCRIPTION)
     parser.add_argument("file", type=str, nargs="+", help="The files to query for")
+    parser.add_argument(
+        "--unix",
+        "-u",
+        action="store_true",
+        help="Should we adhere to the unix philosophy?",
+    )
     return parser
 
 

@@ -13,8 +13,9 @@ requirements:
     - python >=3.8
 
   run:
-    - conda
     - python >=3.8
+    - conda
+    - termcolor
 
 about:
   home: https://github.com/kelvinou01/conda-which
