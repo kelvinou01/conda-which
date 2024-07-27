@@ -20,8 +20,7 @@ def match_longest_prefix(path, conda_envs):
 
 
 def is_conda_metadata(fullpath):
-    conda_meta = os.path.join(os.path.dirname(fullpath), "conda-meta")
-    if os.path.dirname(fullpath) == conda_meta:
+    if os.path.basename(os.path.dirname(fullpath)) == "conda-meta":
         filename = os.path.basename(fullpath)
         if filename.endswith(".json") or filename == "history":
             return True
@@ -65,7 +64,7 @@ def which(path):
     package = find_owner_package(relpath, prefix)
     if package is None:
         if is_conda_metadata(fullpath):
-            return fullpath, prefix, "conda metadata file"
+            return fullpath, prefix, "Conda metadata file"
         else:
             return fullpath, prefix, None
 
