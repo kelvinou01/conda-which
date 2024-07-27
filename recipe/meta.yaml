@@ -1,9 +1,10 @@
 package:
   name: conda-which
-  version: 1.0
+  version: 0.1.0
 
 source:
   path: ../
+  sha256: e18537bab8f01709338c34c375727795c5830a4671be60f3eb82770fa31231be
 
 build:
   script: $PYTHON -m pip install --no-deps .
@@ -19,5 +20,10 @@ requirements:
 
 about:
   home: https://github.com/kelvinou01/conda-which
-  license: BSD-3-Clause
+  license: MIT
+  license_file: LICENSE.txt
   summary: Which package does this file belong to?
+
+extra:
+  recipe-maintainers:
+    - kelvinou01
