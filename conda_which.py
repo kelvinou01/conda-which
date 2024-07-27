@@ -27,7 +27,7 @@ def is_conda_metadata(fullpath):
     return False
 
 
-# Don't use str.removeprefix, for python3.8 support
+# Don't use str.removeprefix, for python <=3.8 support
 def strip_prefix(path, prefix):
     if path.startswith(prefix):
         return path[len(prefix) :].lstrip("/")
