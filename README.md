@@ -17,7 +17,7 @@ Which package does this file belong to?
 2. Install the plugin using conda:
    
    ```sh
-   conda install conda-file-ownership-checker
+   conda install conda-which
    ```
 
 
