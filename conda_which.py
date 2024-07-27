@@ -32,7 +32,7 @@ def strip_prefix(path, prefix):
     if path.startswith(prefix):
         return path[len(prefix) :].lstrip("/")
     else:
-        return ValueError("")
+        return ValueError("Path does not start with prefix")
 
 
 def find_owner_package(relpath, prefix):
