@@ -1,9 +1,9 @@
 import argparse
 import json
 import os
+from json.decoder import JSONDecodeError
 
 import conda.plugins
-from json.decoder import JSONDecodeError
 from conda import CondaError
 from conda.core.envs_manager import list_all_known_prefixes
 from termcolor import colored
@@ -13,7 +13,10 @@ CONDA_ENVS = set(list_all_known_prefixes())
 
 
 class CondaMetaParseError(CondaError):
-    pass
+
+    def __init__(self, message, file_name, caused_by=None, **kwargs):
+        kwargs["file_name"] = file_name
+        super().__init__(message, caused_by=caused_by, **kwargs)
 
 
 def match_longest_prefix(path, conda_envs):
@@ -47,7 +50,7 @@ def read_conda_meta(path):
             return json.load(f)
     except JSONDecodeError as e:
         raise CondaMetaParseError(
-            "Couldn't parse conda metadata file", caused_by=e, file_name=path
+            "Couldn't parse conda metadata file: %(file_name)s", path, caused_by=e
         )
 
 
