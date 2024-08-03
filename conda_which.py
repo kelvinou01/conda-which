@@ -3,11 +3,17 @@ import json
 import os
 
 import conda.plugins
+from json.decoder import JSONDecodeError
+from conda import CondaError
 from conda.core.envs_manager import list_all_known_prefixes
 from termcolor import colored
 
 PLUGIN_DESCRIPTION = "Which package does this file belong to?"
 CONDA_ENVS = set(list_all_known_prefixes())
+
+
+class CondaMetaParseError(CondaError):
+    pass
 
 
 def match_longest_prefix(path, conda_envs):
@@ -35,24 +41,36 @@ def strip_prefix(path, prefix):
         return ValueError("Path does not start with prefix")
 
 
-def find_owner_package(relpath, prefix):
+def read_conda_meta(path):
+    try:
+        with open(path, "r") as f:
+            return json.load(f)
+    except JSONDecodeError as e:
+        raise CondaMetaParseError(
+            "Couldn't parse conda metadata file", caused_by=e, file_name=path
+        )
+
+
+# Find all packages whose conda-meta contains this relpath
+def find_owner_packages(relpath, prefix):
     conda_meta = os.path.join(prefix, "conda-meta")
     metadata_files = [path for path in os.listdir(conda_meta) if path.endswith(".json")]
+    results = []
 
     for filename in metadata_files:
-        json_path = os.path.join(conda_meta, filename)
-        with open(json_path, "r") as f:
-            data = json.load(f)
-            files = data.get("files", [])
-            if relpath in files:
-                return filename.strip(".json")
+        path_to_json = os.path.join(conda_meta, filename)
+        metadata = read_conda_meta(path_to_json)
+        files = metadata.get("files", [])
+        if relpath in files:
+            package = filename.strip(".json")
+            results.append(package)
 
-    return None
+    return results
 
 
-def which(path):
+def which(relpath):
     try:
-        fullpath = os.path.realpath(path, strict=True)
+        fullpath = os.path.realpath(relpath, strict=True)
     except OSError:
         return None, None, None
 
@@ -61,25 +79,31 @@ def which(path):
         return fullpath, None, None
 
     relpath = strip_prefix(fullpath, prefix)
-    package = find_owner_package(relpath, prefix)
-    if package is None:
+    packages = find_owner_packages(relpath, prefix)
+
+    if len(packages) == 0:
         if is_conda_metadata(fullpath):
-            return fullpath, prefix, "Conda metadata file"
+            return fullpath, prefix, ["Conda metadata file"]
         else:
-            return fullpath, prefix, None
+            return fullpath, prefix, []
 
-    return fullpath, prefix, package
+    return fullpath, prefix, packages
 
 
-def print_for_human(arg, fullpath, prefix, package):
+def print_for_human(arg, fullpath, prefix, packages):
     if not fullpath:
         print(colored(f"File '{arg}' does not exist", "red"))
         return
 
-    if package:
-        package_display = colored(package, "green")
-    else:
+    if len(packages) == 0:
         package_display = colored("Does not belong to a conda package", "yellow")
+    elif len(packages) > 1:
+        pretty_package_list = ", ".join(packages)
+        package_display = colored(
+            f"One of: {pretty_package_list} (file was clobbered)", "yellow"
+        )
+    else:
+        package_display = colored(packages[0], "green")
 
     if prefix:
         prefix_display = colored(prefix, "green")
@@ -92,17 +116,19 @@ def print_for_human(arg, fullpath, prefix, package):
     print("")
 
 
-def print_for_machine(fullpath, prefix, package):
+def print_for_machine(fullpath, prefix, packages):
     if not fullpath:
         print("Path not found")
     elif not prefix:
         print(f"'{fullpath}' does not belong to any conda environment")
-    elif not package:
+    elif len(packages) == 0:
         print(
             f"'{fullpath}' belongs to a conda environment, but not to any conda package"
         )
+    elif len(packages) > 1:
+        print(f"'{fullpath}' belongs to {packages} (file was clobbered)")
     else:
-        print(f"'{fullpath}' belongs to {package}")
+        print(f"'{fullpath}' belongs to {packages[0]}")
 
 
 def command(argv: list[str]):
