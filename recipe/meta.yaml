@@ -1,10 +1,9 @@
 package:
   name: conda-which
-  version: 0.1.0
+  version: 0.2.0
 
 source:
-  path: ../
-  sha256: e18537bab8f01709338c34c375727795c5830a4671be60f3eb82770fa31231be
+  url: https://github.com/kelvinou01/{{ name }}/archive/refs/tags/{{ version }}.tar.gz
 
 build:
   script: $PYTHON -m pip install --no-deps .
