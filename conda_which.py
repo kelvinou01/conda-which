@@ -142,7 +142,7 @@ def print_for_machine(fullpath, prefix, packages):
         print(f"'{fullpath}' belongs to {packages[0]}")
 
 
-def command(argv: list[str]):
+def command(argv):
     parser = build_parser()
     args = parser.parse_args(argv)
     adhere_to_unix_philosophy = args.unix
