@@ -36,7 +36,7 @@ Which package does this file belong to?
    cd conda-which
    ```
 
-3. Install the plugin using `pip`:
+3. With the target conda environment activated, install the plugin using `pip`:
    
    ```sh
    pip install -e .
