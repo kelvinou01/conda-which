@@ -13,3 +13,8 @@ conda-example-plugin = "conda_which"
 
 [tool.setuptools]
 py-modules = ["conda_which"]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]

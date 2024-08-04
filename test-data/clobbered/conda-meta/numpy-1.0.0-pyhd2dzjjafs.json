@@ -1,0 +1,8 @@
+{
+    "files": [
+        "lib/numpy/exec.c",
+        "clobbered",
+        "lib/clobbered",
+        "bin/numpy"
+    ]
+}
