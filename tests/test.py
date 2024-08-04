@@ -89,10 +89,12 @@ def test_find_owner_packages(temp_set_conda_envs_list):
     assert find_owner_packages(normal_path, clobbered_prefix) == [
         "flask-1.0.0-pyhd8ed1ab_0"
     ]
-    assert find_owner_packages(clobbered_path, clobbered_prefix) == [
-        "flask-1.0.0-pyhd8ed1ab_0",
-        "numpy-1.0.0-pyhd2dzjjafs",
-    ]
+    assert sorted(find_owner_packages(clobbered_path, clobbered_prefix)) == sorted(
+        [
+            "flask-1.0.0-pyhd8ed1ab_0",
+            "numpy-1.0.0-pyhd2dzjjafs",
+        ]
+    )
 
 
 def test_which_for_normal_environment(temp_set_conda_envs_list):
