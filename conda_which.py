@@ -21,7 +21,6 @@ CONDA_ENVS = set(list_all_known_prefixes())
 
 
 class CondaMetaParseError(CondaError):
-
     def __init__(self, message, file_name, caused_by=None, **kwargs):
         kwargs["file_name"] = file_name
         super().__init__(message, caused_by=caused_by, **kwargs)
@@ -47,7 +46,7 @@ def is_conda_metadata(fullpath):
 # Don't use str.removesuffix, for python <=3.8 support
 def strip_suffix(path, suffix):
     if path.endswith(suffix):
-        return path[:-len(suffix)]
+        return path[: -len(suffix)]
     else:
         return path
 

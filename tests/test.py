@@ -12,6 +12,7 @@ from conda_which import (
     match_longest_prefix,
     read_conda_meta,
     strip_prefix,
+    strip_suffix,
     which,
 )
 
@@ -21,10 +22,10 @@ def conda_metas():
     parent_dir = dirname(abspath(__file__))
     results = [
         os.path.join(
-            parent_dir, "test-data", "conda-meta", "decodable-1.0.0-pyhd8ed1ab_0.json"
+            parent_dir, "data", "conda-meta", "decodable-1.0.0-pyhd8ed1ab_0.json"
         ),
         os.path.join(
-            parent_dir, "test-data", "conda-meta", "notdecodable-1.0.0-pyhd9ed1ab.json"
+            parent_dir, "data", "conda-meta", "notdecodable-1.0.0-pyhd9ed1ab.json"
         ),
     ]
     yield results
@@ -36,8 +37,8 @@ def temp_set_conda_envs_list():
 
     parent_dir = dirname(abspath(__file__))
     envs = [
-        os.path.join(parent_dir, "test-data", "normal"),
-        os.path.join(parent_dir, "test-data", "clobbered"),
+        os.path.join(parent_dir, "data", "environments", "normal"),
+        os.path.join(parent_dir, "data", "environments", "clobbered"),
     ]
     conda_which.CONDA_ENVS = envs
     yield envs
@@ -61,8 +62,14 @@ def test_is_conda_metadata():
 
 def test_strip_prefix():
     assert strip_prefix("/path/to/file", "/path/to") == "file"
-    with pytest.raises(ValueError, match="Path does not start with prefix"):
-        strip_prefix("/path/to/file", "/other/path")
+    assert strip_prefix("/path/to/file", "/other/path") == "/path/to/file"
+    assert strip_prefix("/path/to/path/to/file", "/path/to") == "/path/to/path/to/file"
+
+
+def test_strip_suffix():
+    assert strip_suffix("/path/to/file", ".json") == "/path/to/file"
+    assert strip_suffix("/path/to/file.json", ".json") == "/path/to/file"
+    assert strip_suffix("/path/to/file.json.json", ".json") == "/path/to/file.json"
 
 
 def test_read_conda_meta(conda_metas):

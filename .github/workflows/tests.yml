@@ -11,24 +11,32 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Set up Miniconda
-      uses: conda-incubator/setup-miniconda@v2
-      with:
-        python-version: '3.8'
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Create and activate conda environment
-      run: |
-        conda create --name test-env python=3.8 -y
-        conda activate test-env
-        echo "conda activate test-env" >> $GITHUB_ENV  # Export env activation
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          python-version: "3.8"
+          channels: conda-forge
+          environment-file: tests/environment.yml
+          activate-environment: test
 
-    - name: Install dependencies
-      run: pip install -e .
+      - name: Install test dependencies and the package itself to conda environment
+        run: |
+          # source $(conda info --base)/etc/profile.d/conda.sh
+          # conda activate test
+          pip --version
+          pip install -e .
 
-    - name: Run tests
-      run: pytest test.py -vv
+      - name: Run tests
+        run: |
+          source $(conda info --base)/etc/profile.d/conda.sh
+          conda activate test 
+          pytest tests/test.py -vv
