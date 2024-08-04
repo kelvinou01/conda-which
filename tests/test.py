@@ -63,7 +63,7 @@ def test_is_conda_metadata():
 def test_strip_prefix():
     assert strip_prefix("/path/to/file", "/path/to") == "file"
     assert strip_prefix("/path/to/file", "/other/path") == "/path/to/file"
-    assert strip_prefix("/path/to/path/to/file", "/path/to") == "/path/to/path/to/file"
+    assert strip_prefix("/path/to/path/to/file", "/path/to") == "path/to/file"
 
 
 def test_strip_suffix():
