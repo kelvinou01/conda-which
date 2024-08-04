@@ -1,12 +1,15 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
+requires = ["setuptools>=62", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "conda-which"
 version = "0.1.0"
 description = "What package does this file belong to?"
-dependencies = ["conda", "termcolor"]
+dependencies = [
+    "conda >=23",
+    "termcolor",
+]
 
 [project.entry-points.conda]
 conda-example-plugin = "conda_which"

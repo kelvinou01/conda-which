@@ -1,6 +1,8 @@
 import argparse
 import json
+import logging
 import os
+import sys
 from json.decoder import JSONDecodeError
 
 import conda.plugins
@@ -8,12 +10,17 @@ from conda import CondaError
 from conda.core.envs_manager import list_all_known_prefixes
 from termcolor import colored
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+stdout_handler = logging.StreamHandler(sys.stdout)
+logger.addHandler(stdout_handler)
+
+
 PLUGIN_DESCRIPTION = "Which package does this file belong to?"
 CONDA_ENVS = set(list_all_known_prefixes())
 
 
 class CondaMetaParseError(CondaError):
-
     def __init__(self, message, file_name, caused_by=None, **kwargs):
         kwargs["file_name"] = file_name
         super().__init__(message, caused_by=caused_by, **kwargs)
@@ -36,12 +43,20 @@ def is_conda_metadata(fullpath):
     return False
 
 
+# Don't use str.removesuffix, for python <=3.8 support
+def strip_suffix(path, suffix):
+    if path.endswith(suffix):
+        return path[: -len(suffix)]
+    else:
+        return path
+
+
 # Don't use str.removeprefix, for python <=3.8 support
 def strip_prefix(path, prefix):
     if path.startswith(prefix):
         return path[len(prefix) :].lstrip("/")
     else:
-        return ValueError("Path does not start with prefix")
+        return path
 
 
 def read_conda_meta(path):
@@ -65,21 +80,20 @@ def find_owner_packages(relpath, prefix):
         metadata = read_conda_meta(path_to_json)
         files = metadata.get("files", [])
         if relpath in files:
-            package = filename.strip(".json")
+            package = strip_suffix(filename, ".json")
             results.append(package)
 
     return results
 
 
-def which(relpath):
-    try:
-        fullpath = os.path.realpath(relpath, strict=True)
-    except OSError:
-        return None, None, None
+def which(path):
+    fullpath = os.path.realpath(path)
+    if not os.path.exists(fullpath):
+        return None, None, []
 
     prefix = match_longest_prefix(fullpath, CONDA_ENVS)
     if prefix is None:
-        return fullpath, None, None
+        return fullpath, None, []
 
     relpath = strip_prefix(fullpath, prefix)
     packages = find_owner_packages(relpath, prefix)
@@ -134,10 +148,16 @@ def print_for_machine(fullpath, prefix, packages):
         print(f"'{fullpath}' belongs to {packages[0]}")
 
 
-def command(argv: list[str]):
+def command(argv):
     parser = build_parser()
     args = parser.parse_args(argv)
     adhere_to_unix_philosophy = args.unix
+
+    if args.verbose:
+        logger.setLevel(logging.INFO)
+
+    logger.info("Environments from ~/.condarc/environments.txt: %s", CONDA_ENVS)
+
     for path in args.file:
         fullpath, prefix, package = which(path)
         if adhere_to_unix_philosophy:
@@ -148,12 +168,19 @@ def command(argv: list[str]):
 
 def build_parser():
     parser = argparse.ArgumentParser(description=PLUGIN_DESCRIPTION)
-    parser.add_argument("file", type=str, nargs="+", help="The files to query for")
+    parser.add_argument("file", type=str, nargs="+", help="The files to query for.")
     parser.add_argument(
         "--unix",
         "-u",
         action="store_true",
         help="Should we adhere to the unix philosophy?",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        default=False,
+        action="store_true",
+        help="Print verbose output.",
     )
     return parser
 

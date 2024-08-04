@@ -1,0 +1,6 @@
+{
+    "files": [
+        "lib/numpy/exec.c",
+        "bin/numpy"
+    ]
+}

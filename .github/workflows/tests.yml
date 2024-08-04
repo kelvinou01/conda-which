@@ -1,0 +1,35 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          python-version: "3.8"
+          channels: conda-forge
+          environment-file: tests/environment.yml
+          activate-environment: test
+
+      - name: Install test dependencies and the package itself to conda environment
+        run: pip install -e .
+
+      - name: Run tests
+        run: pytest tests/test.py -vv

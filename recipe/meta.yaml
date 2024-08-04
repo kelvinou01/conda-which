@@ -12,11 +12,15 @@ build:
 requirements:
   host:
     - python
+    - pip
 
   run:
     - python
     - conda
     - termcolor
+
+  test:
+    - pytest
 
 about:
   home: https://github.com/kelvinou01/conda-which
