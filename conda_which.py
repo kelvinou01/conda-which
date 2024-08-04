@@ -49,7 +49,7 @@ def strip_prefix(path, prefix):
     if path.startswith(prefix):
         return path[len(prefix) :].lstrip("/")
     else:
-        return ValueError("Path does not start with prefix")
+        raise ValueError("Path does not start with prefix")
 
 
 def read_conda_meta(path):
@@ -73,21 +73,21 @@ def find_owner_packages(relpath, prefix):
         metadata = read_conda_meta(path_to_json)
         files = metadata.get("files", [])
         if relpath in files:
-            package = filename.strip(".json")
+            package = filename.removesuffix(".json")
             results.append(package)
 
     return results
 
 
-def which(relpath):
+def which(path):
     try:
-        fullpath = os.path.realpath(relpath, strict=True)
+        fullpath = os.path.realpath(path, strict=True)
     except OSError:
-        return None, None, None
+        return None, None, []
 
     prefix = match_longest_prefix(fullpath, CONDA_ENVS)
     if prefix is None:
-        return fullpath, None, None
+        return fullpath, None, []
 
     relpath = strip_prefix(fullpath, prefix)
     packages = find_owner_packages(relpath, prefix)
