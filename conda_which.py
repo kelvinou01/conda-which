@@ -11,7 +11,6 @@ from conda.core.envs_manager import list_all_known_prefixes
 from termcolor import colored
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 stdout_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stdout_handler)
 
@@ -155,6 +154,8 @@ def command(argv):
 
     if args.verbose:
         logger.setLevel(logging.INFO)
+    else:
+        logger.setLevel(logging.WARN)
 
     logger.info("Environments from ~/.condarc/environments.txt: %s", CONDA_ENVS)
 
