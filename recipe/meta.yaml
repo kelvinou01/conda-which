@@ -1,6 +1,6 @@
 package:
   name: conda-which
-  version: 0.2.0
+  version: 0.2.1
 
 source:
   url: https://github.com/kelvinou01/{{ name }}/archive/refs/tags/{{ version }}.tar.gz

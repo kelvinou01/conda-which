@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "conda-which"
-version = "0.2.0"
+version = "0.2.1"
 description = "What package does this file belong to?"
 requires-python = ">=3.8"
 dependencies = [
