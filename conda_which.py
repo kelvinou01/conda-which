@@ -193,3 +193,7 @@ def conda_subcommands():
         action=command,
         summary=PLUGIN_DESCRIPTION,
     )
+
+
+def main():
+    command(sys.argv[1:])
