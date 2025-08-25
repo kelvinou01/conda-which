@@ -2,3 +2,4 @@ venv
 *.pyc
 *.egg-info
 .ruff_cache
+.vscode
