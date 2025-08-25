@@ -1,6 +1,7 @@
 {
     "files": [
         "lib/python3.12/site-packages/flask-1.0.0-pyhd8ed1ab_0/abc.txt",
-        "bin/flask"
+        "bin/flask",
+        "lib/python3.12/site-packages/flask-1.0.0-pyhd8ed1ab_0/symlink-to-abc"
     ]
 }

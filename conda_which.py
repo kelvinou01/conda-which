@@ -86,7 +86,7 @@ def find_owner_packages(relpath, prefix):
 
 
 def which(path):
-    fullpath = os.path.realpath(path)
+    fullpath = os.path.abspath(path)
     if not os.path.exists(fullpath):
         return None, None, []
 

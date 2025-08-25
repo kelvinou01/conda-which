@@ -142,3 +142,12 @@ def test_build_parser():
     args = parser.parse_args(["--unix", "/path/to/file.txt"])
     assert args.unix
     assert args.file == ["/path/to/file.txt"]
+
+def test_symlink(temp_set_conda_envs_list):
+    normal, _ = temp_set_conda_envs_list
+    symlink_path = os.path.join(normal, "lib", "python3.12", "site-packages", "flask-1.0.0-pyhd8ed1ab_0", "symlink-to-abc")
+    fullpath, prefix, packages = which(symlink_path)
+
+    assert fullpath == symlink_path
+    assert prefix == normal
+    assert packages == ["flask-1.0.0-pyhd8ed1ab_0"]
